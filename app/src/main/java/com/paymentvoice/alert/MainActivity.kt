@@ -73,10 +73,8 @@ class MainActivity : Activity() {
         }
         window.statusBarColor = bg
         window.navigationBarColor = bg
-        @Suppress("DEPRECATION")
         window.decorView.systemUiVisibility = if (dark) 0 else
-            (View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or
-                if (Build.VERSION.SDK_INT >= 26) View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR else 0)
+            View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR or View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR
         scroll.setBackgroundColor(bg)
     }
 
@@ -84,7 +82,7 @@ class MainActivity : Activity() {
 
     private fun tv(t: String, size: Float, color: Int, bold: Boolean = false) = TextView(this).apply {
         text = t; textSize = size; setTextColor(color)
-        paint.shader = goldShader(paint.textSize)
+        paint.shader = goldShader(textSize)
         if (bold) typeface = Typeface.DEFAULT_BOLD
     }
 
@@ -103,7 +101,7 @@ class MainActivity : Activity() {
                 cornerRadius = dp(10).toFloat(); setStroke(dp(1), gold)
             }
         } else {
-            setTextColor(gold); paint.shader = goldShader(paint.textSize); background = plate(card)
+            setTextColor(gold); paint.shader = goldShader(textSize); background = plate(card)
         }
         layoutParams = LinearLayout.LayoutParams(
             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT
@@ -114,7 +112,7 @@ class MainActivity : Activity() {
     private fun smallBtn(label: String, onClick: () -> Unit) = Button(this).apply {
         text = label; isAllCaps = false; textSize = 12f
         typeface = Typeface.DEFAULT_BOLD
-        setTextColor(gold); paint.shader = goldShader(paint.textSize)
+        setTextColor(gold); paint.shader = goldShader(textSize)
         background = plate(card)
         minHeight = 0; minimumHeight = 0; minWidth = 0; minimumWidth = 0
         setPadding(dp(4), dp(6), dp(4), dp(6))
@@ -192,14 +190,13 @@ class MainActivity : Activity() {
         if (requestCode == 77 && resultCode == RESULT_OK) {
             val uri = data?.data ?: return
             try {
-                val bytes = contentResolver.openInputStream(uri)?.use { it.readBytes() } ?: return
+                val bytes = contentResolver.openInputStream(uri)!!.use { it.readBytes() }
                 val o = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                 BitmapFactory.decodeByteArray(bytes, 0, bytes.size, o)
                 var s = 1
                 while (maxOf(o.outWidth, o.outHeight) / s > 1600) s *= 2
                 val bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.size,
                     BitmapFactory.Options().apply { inSampleSize = s })
-                    ?: throw IllegalArgumentException("Invalid image")
                 FileOutputStream(qrFile).use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
             } catch (e: Exception) {
                 Toast.makeText(this, "Could not read this image", Toast.LENGTH_SHORT).show()
@@ -209,7 +206,6 @@ class MainActivity : Activity() {
     }
 
     @Deprecated("Deprecated in Java")
-    @Suppress("DEPRECATION")
     override fun onBackPressed() {
         if (qrBig) { qrBig = false; refresh() } else super.onBackPressed()
     }
@@ -439,7 +435,7 @@ class MainActivity : Activity() {
         val flashOn = Store.flash(this)
         val lampView = LampView(this).apply {
             armed = flashOn
-            layoutParams = LinearLayout.LayoutParams(dp(30), dp(30)).apply { marginEnd = dp(4) }
+            layoutParams = LinearLayout.LayoutParams(dp(44), dp(44)).apply { marginEnd = dp(4) }
         }
         lamp = lampView
         left.addView(miniRow("Flash alert", flashOn, lampView) { Store.setFlash(this, it); lampView.armed = it })

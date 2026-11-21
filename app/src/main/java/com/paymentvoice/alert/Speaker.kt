@@ -46,22 +46,15 @@ object Speaker {
 
     private fun say(ta: String, en: String, preferTamil: Boolean) {
         val t = tts ?: return
-        try {
-            (app?.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)?.let {
-                it.setStreamVolume(AudioManager.STREAM_MUSIC, it.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0)
-            }
-        } catch (e: Exception) { }
+        (app?.getSystemService(Context.AUDIO_SERVICE) as? AudioManager)?.let {
+            it.setStreamVolume(AudioManager.STREAM_MUSIC, it.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0)
+        }
         var text = en
         if (preferTamil) {
             val r = t.setLanguage(Locale("ta", "IN"))
             if (r != TextToSpeech.LANG_MISSING_DATA && r != TextToSpeech.LANG_NOT_SUPPORTED) text = ta
         }
-        if (text == en) {
-            val r = t.setLanguage(Locale("en", "IN"))
-            if (r == TextToSpeech.LANG_MISSING_DATA || r == TextToSpeech.LANG_NOT_SUPPORTED) {
-                t.setLanguage(Locale.ENGLISH)
-            }
-        }
+        if (text == en) t.setLanguage(Locale("en", "IN"))
         t.speak(text, TextToSpeech.QUEUE_ADD, null, UUID.randomUUID().toString())
     }
 }
